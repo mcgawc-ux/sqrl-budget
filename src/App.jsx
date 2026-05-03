@@ -323,6 +323,11 @@ export default function BudgetApp() {
     });
   },[cats]);
 
+  // ── Persist to localStorage ──
+  useEffect(()=>{ try { localStorage.setItem("sqrl_cats", JSON.stringify(cats)); } catch(e){} }, [cats]);
+  useEffect(()=>{ try { localStorage.setItem("sqrl_txns", JSON.stringify(txns)); } catch(e){} }, [txns]);
+  useEffect(()=>{ try { localStorage.setItem("sqrl_rollover", JSON.stringify(rollover)); } catch(e){} }, [rollover]);
+
   const totalRemaining=cats.reduce((s,c)=>s+remainingAmt(c,txns,rollover),0);
   const todayStr=new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}).toUpperCase();
 
