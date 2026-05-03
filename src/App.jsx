@@ -66,13 +66,13 @@ function fmtDate(iso) {
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 const N = Date.now();
-const INIT_CATS = [
+const DEFAULT_CATS = [
   {id:"c1",name:"Groceries",    budget:400,interval:"weekly", customDays:null,anchor:new Date(N-86400000*3).toISOString()},
   {id:"c2",name:"Dining",       budget:200,interval:"weekly", customDays:null,anchor:new Date(N-86400000*3).toISOString()},
   {id:"c3",name:"Transport",    budget:150,interval:"monthly",customDays:null,anchor:new Date(N-86400000*10).toISOString()},
   {id:"c4",name:"Discretionary",budget:300,interval:"monthly",customDays:null,anchor:new Date(N-86400000*10).toISOString()},
 ];
-const INIT_TXN = {
+const DEFAULT_TXN = {
   c1:[
     {id:"t1",amount:67.40,desc:"Trader Joe's",  date:new Date(N-86400000*1).toISOString()},
     {id:"t2",amount:23.10,desc:"Farmers market",date:new Date(N-86400000*3).toISOString()},
@@ -88,6 +88,11 @@ const INIT_TXN = {
     {id:"t8",amount:120.00,desc:"Running shoes", date:new Date(N-86400000*6).toISOString()},
   ],
 };
+function loadStorage(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; }
+}
+const INIT_CATS = loadStorage("sqrl_cats", DEFAULT_CATS);
+const INIT_TXN  = loadStorage("sqrl_txns", DEFAULT_TXN);
 
 // ─── Budget Math ──────────────────────────────────────────────────────────────
 function currentTxns(catId, allTxns, cat) {
@@ -263,7 +268,7 @@ export default function BudgetApp() {
   const [splashDone, setSplashDone] = useState(false);
   const [cats,    setCats]    = useState(INIT_CATS);
   const [txns,    setTxns]    = useState(INIT_TXN);
-  const [rollover,setRollover]= useState({});
+  const [rollover,setRollover]= useState(loadStorage("sqrl_rollover", {}));
   const [view,    setView]    = useState("dashboard");
   const [activeId,setActiveId]= useState(null);
   const [amount,  setAmount]  = useState("");
