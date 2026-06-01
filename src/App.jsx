@@ -275,6 +275,7 @@ export default function BudgetApp() {
   const [desc,    setDesc]    = useState("");
   const [sort,    setSort]    = useState("date");
   const [pressed, setPressed] = useState(null);
+  const [pressedAdd, setPressedAdd] = useState(null);
   const [editCat, setEditCat] = useState(null);
 
   const activeCat = cats.find(c=>c.id===activeId);
@@ -430,34 +431,53 @@ export default function BudgetApp() {
             const ro=rollover[cat.id]?.amount||0;
             return (
               <div key={cat.id}>
-                <div style={{display:"flex",alignItems:"center",padding:"18px 24px",gap:16,
-                  cursor:"pointer",userSelect:"none",WebkitTapHighlightColor:"transparent",
-                  background:pressed===cat.id?"#EDE9E1":"transparent",transition:"background 0.12s"}}
-                  onPointerDown={()=>setPressed(cat.id)}
-                  onPointerUp={()=>{setPressed(null);openDetail(cat.id);}}
-                  onPointerLeave={()=>setPressed(null)}>
-                  <Ring progress={p}/>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:15,fontWeight:500,color:"#1A1A1A",letterSpacing:"-0.01em",
-                      marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {cat.name}
+                <div style={{display:"flex",alignItems:"center",padding:"18px 24px",gap:12,
+                  userSelect:"none",WebkitTapHighlightColor:"transparent"}}>
+                  {/* Detail tap zone */}
+                  <div style={{display:"flex",alignItems:"center",gap:12,flex:1,minWidth:0,
+                    cursor:"pointer",borderRadius:6,
+                    background:pressed===cat.id?"#EDE9E1":"transparent",
+                    transition:"background 0.12s",padding:"4px 0"}}
+                    onPointerDown={()=>setPressed(cat.id)}
+                    onPointerUp={()=>{setPressed(null);openDetail(cat.id);}}
+                    onPointerLeave={()=>setPressed(null)}>
+                    <Ring progress={p}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:15,fontWeight:500,color:"#1A1A1A",letterSpacing:"-0.01em",
+                        marginBottom:3,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {cat.name}
+                      </div>
+                      <div style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:"#AAA",
+                        letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",gap:8,flexWrap:"wrap"}}>
+                        <span>{intervalLabel(cat.interval,cat.customDays)} · {fmt(cat.budget)}</span>
+                        {ro>0&&<span style={{color:"#4A7C59"}}>+{fmt(ro)} rollover</span>}
+                      </div>
                     </div>
-                    <div style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:"#AAA",
-                      letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",gap:8,flexWrap:"wrap"}}>
-                      <span>{intervalLabel(cat.interval,cat.customDays)} · {fmt(cat.budget)}</span>
-                      {ro>0&&<span style={{color:"#4A7C59"}}>+{fmt(ro)} rollover</span>}
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <div style={{fontSize:17,fontWeight:400,letterSpacing:"-0.02em",
+                        fontVariantNumeric:"tabular-nums",color:rem<0?"#C0392B":"#1A1A1A"}}>
+                        {fmt(rem)}
+                      </div>
+                      <div style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:"#AAA",
+                        letterSpacing:"0.06em",marginTop:2}}>
+                        {fmt(spentAmt(cat.id,txns,cat))} spent
+                      </div>
                     </div>
                   </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{fontSize:17,fontWeight:400,letterSpacing:"-0.02em",
-                      fontVariantNumeric:"tabular-nums",color:rem<0?"#C0392B":"#1A1A1A"}}>
-                      {fmt(rem)}
-                    </div>
-                    <div style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:"#AAA",
-                      letterSpacing:"0.06em",marginTop:2}}>
-                      {fmt(spentAmt(cat.id,txns,cat))} spent
-                    </div>
-                  </div>
+                  {/* Circular add button */}
+                  <button
+                    onPointerDown={e=>{e.stopPropagation();setPressedAdd(cat.id);}}
+                    onPointerUp={e=>{e.stopPropagation();setPressedAdd(null);openExpense(cat.id);}}
+                    onPointerLeave={()=>setPressedAdd(null)}
+                    style={{
+                      width:34,height:34,borderRadius:"50%",flexShrink:0,
+                      background:pressedAdd===cat.id?"#444":"#1A1A1A",
+                      border:"none",color:"#F5F1EB",fontSize:22,lineHeight:1,
+                      cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+                      transition:"background 0.1s",boxShadow:"0 2px 8px rgba(0,0,0,0.12)",
+                    }}>
+                    +
+                  </button>
                 </div>
                 <div style={{height:1,background:"#D6D0C8",margin:"0 24px"}}/>
               </div>
@@ -465,40 +485,9 @@ export default function BudgetApp() {
           })}
         </div>
 
-        {/* FAB */}
-        <button onClick={()=>{setActiveId(null);setView("choose");}}
-          style={{position:"fixed",bottom:32,left:"50%",transform:"translateX(-50%)",
-            width:56,height:56,borderRadius:"50%",background:"#1A1A1A",color:"#F5F1EB",
-            border:"none",fontSize:26,cursor:"pointer",display:"flex",alignItems:"center",
-            justifyContent:"center",boxShadow:"0 4px 20px rgba(0,0,0,0.18)",zIndex:100}}>
-          +
-        </button>
 
-        {/* CHOOSE CATEGORY */}
-        {view==="choose"&&(
-          <div style={OVL} onClick={()=>setView("dashboard")}>
-            <div style={SHT} onClick={e=>e.stopPropagation()}>
-              <div style={HDL}/>
-              <div style={{padding:"0 24px 14px",borderBottom:"1px solid #D6D0C8"}}>
-                <div style={MLBL}>Add expense to</div>
-              </div>
-              {cats.map(cat=>(
-                <div key={cat.id}>
-                  <div style={{display:"flex",alignItems:"center",padding:"15px 24px",gap:14,cursor:"pointer"}}
-                    onClick={()=>openExpense(cat.id)}>
-                    <Ring progress={pctSpent(cat,txns,rollover)} size={40} stroke={2.5}/>
-                    <div style={{flex:1,fontSize:15,fontWeight:500,color:"#1A1A1A"}}>{cat.name}</div>
-                    <div style={{fontSize:15,fontVariantNumeric:"tabular-nums",
-                      color:remainingAmt(cat,txns,rollover)<0?"#C0392B":"#1A1A1A"}}>
-                      {fmt(remainingAmt(cat,txns,rollover))}
-                    </div>
-                  </div>
-                  <div style={{height:1,background:"#D6D0C8",margin:"0 24px"}}/>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
+
 
         {/* EXPENSE ENTRY */}
         {view==="expense"&&activeCat&&(
