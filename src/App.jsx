@@ -397,7 +397,7 @@ export default function BudgetApp() {
                   padding:"7px 13px 7px 10px",lineHeight:1}}>
                 <span style={{fontSize:16,color:"#F5F1EB",lineHeight:1,marginTop:-1}}>+</span>
                 <span style={{fontSize:10,fontFamily:"'DM Mono',monospace",letterSpacing:"0.12em",
-                  textTransform:"uppercase",color:"#F5F1EB"}}>New</span>
+                  textTransform:"uppercase",color:"#F5F1EB"}}>New Category</span>
               </button>
             </div>
           </div>
@@ -450,7 +450,7 @@ export default function BudgetApp() {
                       <div style={{fontSize:10,fontFamily:"'DM Mono',monospace",color:"#AAA",
                         letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",gap:8,flexWrap:"wrap"}}>
                         <span>{intervalLabel(cat.interval,cat.customDays)} · {fmt(cat.budget)}</span>
-                        {ro>0&&<span style={{color:"#4A7C59"}}>+{fmt(ro)} rollover</span>}
+                        {ro!==0&&<span style={{color:ro>0?"#4A7C59":"#C0392B"}}>{ro>0?"+":""}{fmt(ro)} rollover</span>}
                       </div>
                     </div>
                     <div style={{textAlign:"right",flexShrink:0}}>
