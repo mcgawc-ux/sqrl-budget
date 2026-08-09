@@ -29,6 +29,111 @@ function SplashScreen({ onDone }) {
   );
 }
 
+
+// ─── Onboarding ───────────────────────────────────────────────────────────────
+const ONBOARDING_STEPS = [
+  {
+    key: "welcome",
+    title: "Welcome to SQRL",
+    body: "A calm, simple budgeting tool. No accounts, no cloud — just your money, on your device.",
+    cta: "Get started",
+  },
+  {
+    key: "how",
+    title: "How it works",
+    body: "Create budget categories — like Groceries or Dining — set an amount, and track spending as you go. Budgets reset on your schedule.",
+    cta: "Got it",
+  },
+  {
+    key: "rollover",
+    title: "Rollover budgets",
+    body: "Unspent money carries forward to the next period automatically. Overspend and it comes out of the next period too.",
+    cta: "Nice",
+  },
+  {
+    key: "setup",
+    title: "Create your first category",
+    body: "Let's set up a budget category together. You can always add more later.",
+    cta: "Create a category",
+    isCta: true,
+  },
+];
+
+function OnboardingScreen({ onDone, onCreateCategory }) {
+  const [step, setStep] = useState(0);
+  const [fading, setFading] = useState(false);
+  const current = ONBOARDING_STEPS[step];
+  const isLast = step === ONBOARDING_STEPS.length - 1;
+
+  function advance() {
+    if (isLast) { onCreateCategory(); onDone(); return; }
+    setFading(true);
+    setTimeout(() => { setStep(s => s + 1); setFading(false); }, 200);
+  }
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, background:"#F5F1EB", zIndex:9998,
+      display:"flex", flexDirection:"column", alignItems:"center",
+      justifyContent:"space-between", padding:"72px 36px 56px",
+    }}>
+      {/* Logo */}
+      <img src={FULL_LOGO} alt="SQRL" style={{width:"54%", maxWidth:240, opacity:0.9}}/>
+
+      {/* Content */}
+      <div style={{
+        textAlign:"center", opacity: fading?0:1,
+        transition:"opacity 0.2s ease", width:"100%",
+      }}>
+        <div style={{
+          fontSize:24, fontWeight:600, color:"#1A1A1A",
+          letterSpacing:"-0.02em", marginBottom:16, lineHeight:1.2,
+        }}>
+          {current.title}
+        </div>
+        <div style={{
+          fontSize:15, fontWeight:400, color:"#666",
+          lineHeight:1.65, letterSpacing:"-0.01em", maxWidth:300, margin:"0 auto",
+        }}>
+          {current.body}
+        </div>
+      </div>
+
+      {/* Bottom */}
+      <div style={{width:"100%"}}>
+        {/* Step dots */}
+        <div style={{display:"flex", justifyContent:"center", gap:6, marginBottom:28}}>
+          {ONBOARDING_STEPS.map((_,i) => (
+            <div key={i} style={{
+              width: i===step?20:6, height:6, borderRadius:3,
+              background: i===step?"#1A1A1A":"#D6D0C8",
+              transition:"all 0.3s ease",
+            }}/>
+          ))}
+        </div>
+        <button onClick={advance} style={{
+          width:"100%", padding:"17px", background:"#1A1A1A", color:"#F5F1EB",
+          border:"none", borderRadius:6, fontSize:14,
+          fontFamily:"'DM Mono',monospace", letterSpacing:"0.12em",
+          textTransform:"uppercase", cursor:"pointer",
+        }}>
+          {current.cta}
+        </button>
+        {step < ONBOARDING_STEPS.length - 1 && (
+          <button onClick={onDone} style={{
+            width:"100%", padding:"14px", background:"transparent",
+            color:"#AAA", border:"none", fontSize:11,
+            fontFamily:"'DM Mono',monospace", letterSpacing:"0.12em",
+            textTransform:"uppercase", cursor:"pointer", marginTop:8,
+          }}>
+            Skip
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Period Helpers ────────────────────────────────────────────────────────────
 function getPeriodStart(interval, customDays, anchor) {
   const now = new Date();
@@ -66,28 +171,8 @@ function fmtDate(iso) {
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
 const N = Date.now();
-const DEFAULT_CATS = [
-  {id:"c1",name:"Groceries",    budget:400,interval:"weekly", customDays:null,anchor:new Date(N-86400000*3).toISOString()},
-  {id:"c2",name:"Dining",       budget:200,interval:"weekly", customDays:null,anchor:new Date(N-86400000*3).toISOString()},
-  {id:"c3",name:"Transport",    budget:150,interval:"monthly",customDays:null,anchor:new Date(N-86400000*10).toISOString()},
-  {id:"c4",name:"Discretionary",budget:300,interval:"monthly",customDays:null,anchor:new Date(N-86400000*10).toISOString()},
-];
-const DEFAULT_TXN = {
-  c1:[
-    {id:"t1",amount:67.40,desc:"Trader Joe's",  date:new Date(N-86400000*1).toISOString()},
-    {id:"t2",amount:23.10,desc:"Farmers market",date:new Date(N-86400000*3).toISOString()},
-    {id:"t3",amount:88.75,desc:"Whole Foods",   date:new Date(N-86400000*5).toISOString()},
-  ],
-  c2:[
-    {id:"t4",amount:45.00,desc:"Le Bernardin",  date:new Date(N-86400000*2).toISOString()},
-    {id:"t5",amount:18.50,desc:"Lunch",          date:new Date(N-86400000*4).toISOString()},
-  ],
-  c3:[{id:"t6",amount:32.00,desc:"Monthly pass", date:new Date(N-86400000*1).toISOString()}],
-  c4:[
-    {id:"t7",amount:55.00, desc:"Books",         date:new Date(N-86400000*2).toISOString()},
-    {id:"t8",amount:120.00,desc:"Running shoes", date:new Date(N-86400000*6).toISOString()},
-  ],
-};
+const DEFAULT_CATS = [];
+const DEFAULT_TXN = {};
 function loadStorage(key, fallback) {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; }
 }
@@ -266,6 +351,9 @@ function CatEditor({cat, onSave, onDelete, onClose}) {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function BudgetApp() {
   const [splashDone, setSplashDone] = useState(false);
+  const [onboarded, setOnboarded] = useState(()=> {
+    try { return localStorage.getItem("sqrl_onboarded") === "true"; } catch(e) { return false; }
+  });
   const [cats,    setCats]    = useState(INIT_CATS);
   const [txns,    setTxns]    = useState(INIT_TXN);
   const [rollover,setRollover]= useState(loadStorage("sqrl_rollover", {}));
@@ -332,6 +420,11 @@ export default function BudgetApp() {
   const totalRemaining=cats.reduce((s,c)=>s+remainingAmt(c,txns,rollover),0);
   const todayStr=new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}).toUpperCase();
 
+  function completeOnboarding() {
+    try { localStorage.setItem("sqrl_onboarded", "true"); } catch(e) {}
+    setOnboarded(true);
+  }
+
   function openExpense(id){setActiveId(id);setAmount("");setDesc("");setView("expense");}
   function openDetail(id){setActiveId(id);setSort("date");setView("detail");}
 
@@ -379,6 +472,14 @@ export default function BudgetApp() {
 
       {/* ── SPLASH ── */}
       {!splashDone && <SplashScreen onDone={()=>setSplashDone(true)}/>}
+
+      {/* ── ONBOARDING ── */}
+      {splashDone && !onboarded && (
+        <OnboardingScreen
+          onDone={completeOnboarding}
+          onCreateCategory={()=>{ completeOnboarding(); setEditCat({}); }}
+        />
+      )}
 
       <div style={{width:"100%",maxWidth:390,background:"#F5F1EB",minHeight:"100vh",position:"relative"}}>
 
